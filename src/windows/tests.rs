@@ -92,6 +92,25 @@ fn missing_target_fails() {
     );
 }
 
+/// Tests whether `remove_dir_all` works with input paths containing forward slashes.
+#[test]
+fn unix_path_delimiters_work() {
+    let base_dir = TempDir::new().unwrap();
+
+    let mut dir_path = base_dir.path().as_os_str().to_os_string();
+    dir_path.push("/foo");
+    let dir_path = PathBuf::from(dir_path);
+
+    fs::create_dir(&dir_path).unwrap();
+    create_empty_file(&dir_path.join("foo")).unwrap();
+
+    super::remove_dir_all(&dir_path).unwrap();
+    assert_eq!(
+        fs::metadata(&dir_path).err().map(|error| error.kind()),
+        Some(io::ErrorKind::NotFound)
+    );
+}
+
 /// Tests whether `remove_dir_all` works on a non-empty directory symlink without deleting the
 /// target directory itself.
 #[test]
