@@ -24,8 +24,9 @@ const EXTENDED_PATH_PREFIX: [u16; 4] = [b'\\' as _, b'\\' as _, b'?' as _, b'\\'
 /// Resolves the absolute path for the given path string, returning a nul-terminated UTF-16 string.
 ///
 /// `std::fs::canonicalize` is not suitable for our purposes, as it resolves symbolic links
-/// automatically, so `GetFullPathNameW` is used instead. `\\?\` is also added to the input path to
-/// support extended-length path names, and will likely be included in the output string as well.
+/// automatically, so `GetFullPathNameW` is used instead. Like `canonicalize`, `\\?\` will be added
+/// to the input path if not already present to allow for extended-length path names, and will
+/// likely be included in the output string as well.
 ///
 /// Note that `GetFullPathNameW` does not check whether the path actually exists, so subsequent
 /// operations will need to account for any required existence checks.
@@ -69,6 +70,7 @@ fn resolve_absolute_path_utf16(path: &Path) -> io::Result<Vec<u16>> {
             unsafe {
                 absolute_path.set_len(result as usize + 1);
             }
+            debug_assert_eq!(absolute_path[result as usize], 0);
 
             return Ok(absolute_path);
         }
