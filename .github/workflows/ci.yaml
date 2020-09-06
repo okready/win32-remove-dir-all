@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  schedule:
+  - cron: '0 0 * * 0'
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Rust `${{ matrix.rust }}` on `${{ matrix.os }}`
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+        - stable
+        - beta
+        - nightly
+        - 1.37.0
+        os: [ubuntu-latest, windows-latest]
+    steps:
+    - name: Perform checkout
+      uses: actions/checkout@v2
+    - name: Install `${{ matrix.rust }}` toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        default: true
+        profile: minimal
+    - name: Build/test using Property System API
+      run: cargo test --verbose --features symlink_tests
+    - name: Build/test using Shell API
+      run: cargo test --verbose --no-default-features --features symlink_tests
+
+  rustfmt-and-clippy:
+    name: Formatting and lint checking
+    runs-on: windows-latest
+    steps:
+    - name: Perform checkout
+      uses: actions/checkout@v2
+    - name: Install `stable` toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        components: rustfmt
+    - name: Check formatting (`rustfmt`)
+      run: cargo fmt -- --check
+    - name: Lint check (`clippy`) with Property System API enabled
+      run: cargo clippy --tests --features symlink_tests -- -D warnings
+    - name: Lint check (`clippy`) with Property System API disabled
+      run: cargo clippy --tests --no-default-features --features symlink_tests -- -D warnings

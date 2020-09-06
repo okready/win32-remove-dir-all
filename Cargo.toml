@@ -1,0 +1,32 @@
+[package]
+name = "win32-remove-dir-all"
+version = "0.1.0"
+authors = ["Theodore Cipicchio <okready@users.noreply.github.com>"]
+edition = "2018"
+description = "A std::fs::remove_dir_all replacement using the Windows Shell and Property System APIs on Windows"
+license = "MIT/Apache-2.0"
+documentation = "https://docs.rs/win32-remove-dir-all"
+homepage = "https://github.com/okready/win32-remove-dir-all"
+repository = "https://github.com/okready/win32-remove-dir-all"
+readme = "README.md"
+categories = ["filesystem"]
+keywords = ["remove_dir_all", "windows", "shfileoperation", "shfileoperationw", "ifileoperation"]
+
+[features]
+default = ["property_system_api"]
+
+# Enables support for using the Windows Property System and `IFileOperation` for directory removal
+# if supported by the OS. If disabled, the Windows Shell `SHFileOperationW` function will be used
+# exclusively on all versions of Windows.
+property_system_api = ["winapi/libloaderapi", "winapi/objbase", "winapi/shobjidl_core", "winapi/winerror"]
+
+# Enables symlink removal tests. This requires specific privileges (`SeCreateSymbolicLink`, or
+# Developer Mode as of Windows 10 Creators Update), so it is disabled by default.
+symlink_tests = []
+
+[target.'cfg(windows)'.dependencies]
+num_enum = "0.5"
+winapi = { version = "0.3", features = ["shellapi"] }
+
+[target.'cfg(windows)'.dev-dependencies]
+tempfile = "3.1"
